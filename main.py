@@ -2,13 +2,15 @@ import os
 from PIL import Image
 from resizeimage import resizeimage
 
-imageWidth = 200
-imageHeight = 200
+imageWidth = 180
+imageHeight = 180
 startDirectory = '../portfolio2019/public/images/project/vids/'
 endDirectory = '../portfolio2019/public/images/project/vidthumbs/'
 prependName = ''
 appendName = ''
-allowedTypes = ['jpg', 'png', 'gif']
+turnAnimatedIntoStill = True
+# allowedTypes = ['jpg', 'png', 'gif']
+allowedTypes = ['gif']
 
 # resize_crop crop the image with a centered rectangle of the specified size.
 # resize_cover resize the image to fill the specified area, crop as needed (same behavior as background-size: cover).
@@ -23,12 +25,11 @@ def resize_jpg(imgLoc, endLoc, imageWidth, imageHeight):
             newImage = resizeimage.resize_cover(image, [imageWidth, imageHeight])
             newImage.save(endLoc, image.format)
 
-def resize_gif(path, save_as=None, resize_to=None):
+def resize_gif(path, save_as=None, resize_to=None, turnAnimatedIntoStill = False):
     all_frames = extract_and_resize_frames(path, resize_to)
     if not save_as:
         save_as = path
-    if len(all_frames) == 1:
-        print("Warning: only 1 frame found")
+    if len(all_frames) == 1 or turnAnimatedIntoStill == True:
         all_frames[0].save(save_as, optimize=True)
     else:
         all_frames[0].save(save_as, optimize=True, save_all=True, append_images=all_frames[1:], loop=1000)
@@ -83,17 +84,18 @@ def extract_and_resize_frames(path, resize_to=None):
 
 
 # main function
-def processFiles(startDirectory, endDirectory, imageWidth, imageHeight, appendName, prependName, allowedTypes):
+def processFiles(startDirectory, endDirectory, imageWidth, imageHeight, appendName, prependName, allowedTypes, turnAnimatedIntoStill):
     allFiles = os.listdir(startDirectory)
+    print(allFiles)
     for fileName in allFiles:
         fileType = None
         splitName = fileName.split('.')
         if len(splitName) < 2:
-            return
+            continue
         else:
             fileType = splitName[1]
         if fileType not in allowedTypes:
-            return
+            continue
         if fileType:
             fileLoc = startDirectory + fileName
             endLoc = endDirectory + fileName
@@ -103,8 +105,8 @@ def processFiles(startDirectory, endDirectory, imageWidth, imageHeight, appendNa
                 endLoc = endDirectory + prependName + fileName
             if fileType == 'gif':
                 imgSize = (imageHeight, imageWidth)
-                resize_gif(fileLoc, endLoc, imgSize)
+                resize_gif(fileLoc, endLoc, imgSize, turnAnimatedIntoStill)
             else:
                 resize_jpg(fileLoc, endLoc, imageWidth, imageHeight)
 
-processFiles(startDirectory, endDirectory, imageWidth, imageHeight, appendName, prependName, allowedTypes)
+processFiles(startDirectory, endDirectory, imageWidth, imageHeight, appendName, prependName, allowedTypes, turnAnimatedIntoStill)
